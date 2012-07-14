@@ -8,24 +8,108 @@
             id="Plugin.EditorContribution"
             objectClass="org.eclipse.ui.IEditorInput"
             nameFilter="*.*">
-            <!-- add a menu item call "Plugin" -->
             <menu
-                label="Plugin"
+                label="Jims Loggacy"
                 path="additions"
                 id="Plugin.EditorMenu">
                 <separator
                     name="group">
                 </separator>
             </menu>
-            <!-- add a sub menu item called "Do Stuff" -->
-            <!-- that calls the class plugin.actions.DoStuff -->
             <action
-                label="Do Stuff"
-                class="plugin2.actions.DoStuff"
+                label="Error"
+                class="loggacy.actions.Error"
                 menubarPath="Plugin.EditorMenu/group"
                 enablesFor="1"
-                id="Plugin.DoStuffAction">
+                id="Plugin.Error">
+            </action>
+            <action
+                label="Warn"
+                class="loggacy.actions.Warning"
+                menubarPath="Plugin.EditorMenu/group"
+                enablesFor="1"
+                id="Plugin.Warn">
+            </action>
+            <action
+                label="Info"
+                class="loggacy.actions.Inform"
+                menubarPath="Plugin.EditorMenu/group"
+                enablesFor="1"
+                id="Plugin.Info">
+            </action>
+            <action
+                label="Debug"
+                class="loggacy.actions.Debug"
+                menubarPath="Plugin.EditorMenu/group"
+                enablesFor="1"
+                id="Plugin.Debug">
+            </action>
+            <action
+                label="Verbose"
+                class="loggacy.actions.Verbose"
+                menubarPath="Plugin.EditorMenu/group"
+                enablesFor="1"
+                id="Plugin.Verbose">
             </action>
         </objectContribution>        
     </extension>
+    
+    <extension point="org.eclipse.ui.commands">
+	    <command
+	        defaultHandler="loggacy.actions.Error"
+	        id="Plugin.Error"
+	        name="Error">
+	    </command>
+	    <command
+	        defaultHandler="loggacy.actions.Warning"
+	        id="Plugin.Warn"
+	        name="Warn">
+	    </command>
+	    <command
+	        defaultHandler="loggacy.actions.Inform"
+	        id="Plugin.Info"
+	        name="Info">
+	    </command>
+	    <command
+	        defaultHandler="loggacy.actions.Debug"
+	        id="Plugin.Debug"
+	        name="Debug">
+	    </command>
+	    <command
+	        defaultHandler="loggacy.actions.Verbose"
+	        id="Plugin.Verbose"
+	        name="Verbose">
+	    </command>
+	</extension>
+	
+    <extension point="org.eclipse.ui.bindings">
+		<key sequence="Ctrl+Alt+1"
+			commandId="Plugin.Error"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			contextId="org.eclipse.ui.textEditorScope"/>
+	</extension>
+	<extension point="org.eclipse.ui.bindings">
+		<key sequence="Ctrl+Alt+2"
+			commandId="Plugin.Warn"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			contextId="org.eclipse.ui.textEditorScope"/>
+	</extension>
+	<extension point="org.eclipse.ui.bindings">
+		<key sequence="Ctrl+Alt+3"
+			commandId="Plugin.Info"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			contextId="org.eclipse.ui.textEditorScope"/>
+	</extension>
+	<extension point="org.eclipse.ui.bindings">
+		<key sequence="Ctrl+Alt+4"
+			commandId="Plugin.Debug"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			contextId="org.eclipse.ui.textEditorScope"/>
+	</extension>
+	<extension point="org.eclipse.ui.bindings">
+		<key sequence="Ctrl+Alt+5"
+			commandId="Plugin.Verbose"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			contextId="org.eclipse.ui.textEditorScope"/>
+	</extension>
 </plugin>
