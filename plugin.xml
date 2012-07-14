@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+    <!-- add to pop menu -->
+    <extension point="org.eclipse.ui.popupMenus">
+        <!-- add to editor context menu -->
+        <objectContribution
+            id="Plugin.EditorContribution"
+            objectClass="org.eclipse.ui.IEditorInput"
+            nameFilter="*.*">
+            <!-- add a menu item call "Plugin" -->
+            <menu
+                label="Plugin"
+                path="additions"
+                id="Plugin.EditorMenu">
+                <separator
+                    name="group">
+                </separator>
+            </menu>
+            <!-- add a sub menu item called "Do Stuff" -->
+            <!-- that calls the class plugin.actions.DoStuff -->
+            <action
+                label="Do Stuff"
+                class="plugin2.actions.DoStuff"
+                menubarPath="Plugin.EditorMenu/group"
+                enablesFor="1"
+                id="Plugin.DoStuffAction">
+            </action>
+        </objectContribution>        
+    </extension>
+</plugin>
