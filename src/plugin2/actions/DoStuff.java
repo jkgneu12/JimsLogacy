@@ -2,6 +2,7 @@ package plugin2.actions;
 
 import japa.parser.JavaParser;
 import japa.parser.ast.CompilationUnit;
+import japa.parser.ast.body.ClassOrInterfaceDeclaration;
 import japa.parser.ast.body.ConstructorDeclaration;
 import japa.parser.ast.body.FieldDeclaration;
 import japa.parser.ast.body.MethodDeclaration;
@@ -18,6 +19,9 @@ import japa.parser.ast.stmt.Statement;
 import japa.parser.ast.visitor.VoidVisitorAdapter;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.StringBufferInputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -25,6 +29,7 @@ import java.util.ListIterator;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
@@ -54,8 +59,18 @@ public class DoStuff implements IObjectActionDelegate {
 	private IDocument doc;
 	
 	private String selectedText = null;
+	private Bounds selectedTextBounds;
+	
+	private boolean selectedIsClass = false;
+	private boolean selectedIsMethod = false;
+	
+	private String currentClassName = null;
+	private String currentMethodName = null;
 
 	private int loggingStatementsPrinted;
+	
+	
+	
 
 	/**
 	 * Constructor
@@ -88,12 +103,12 @@ public class DoStuff implements IObjectActionDelegate {
 
 			if (editorPart instanceof AbstractTextEditor) {
 
+				
+				findDocument();
 				findSelectedText();
 
-				 findDocument();
-
-				CompilationUnit compUnit = JavaParser.parse(new ByteArrayInputStream(doc.get(0, doc.getLength()).getBytes()));
-
+				
+				CompilationUnit compUnit = JavaParser.parse(new StringBufferInputStream(doc.get(0, doc.getLength())), "UTF-8");
 				new MethodVisitor().visit(compUnit, null);
 
 			}
@@ -110,6 +125,7 @@ public class DoStuff implements IObjectActionDelegate {
 				ISelection iSelection = selectionProvider.getSelection();
 				if (!iSelection.isEmpty()) {
 					selectedText = ((ITextSelection) iSelection).getText();
+					selectedTextBounds = new Bounds( ((ITextSelection) iSelection));
 				}
 			}
 		}
@@ -120,9 +136,92 @@ public class DoStuff implements IObjectActionDelegate {
 		IDocumentProvider dp = editor.getDocumentProvider();
 		doc = dp.getDocument(editor.getEditorInput());
 	}
+	
+	/**
+	 * Attempt to log all statements in a list
+	 * @param stmts - List of Statements that will attempt to be logged
+	 */
+	private void attemptToLogStatements(List<Statement> stmts){
+		Iterator<Statement> iterator = stmts.iterator();
+		while(iterator.hasNext()){
+			Statement stmt = iterator.next();
+			if(stmt instanceof ExpressionStmt){
+				Expression exp = ((ExpressionStmt)stmt).getExpression();
+				breakDownExpressionAndAttemptToLog(exp);
+			}
+		}
+	}
+	
+	/**
+	 * Attempt to log an Expression
+	 * @param exp - variable declaration that will attempt to be logged
+	 */
+	private boolean breakDownExpressionAndAttemptToLog(Expression exp){
+		boolean shouldLogMatch = shouldLogMatch(exp);
+		boolean shouldLogMethodOrClass = shouldLogMethodOrClass(exp);
+		if(shouldLogMatch || shouldLogMethodOrClass){
+			ArrayList<String> vars = new ArrayList<String>();
+			addExpressionParts(vars, exp);
+			
+			printLog(vars, exp.getEndLine()-1, shouldLogMatch);
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * Should this Expression be logged?
+	 * @param exp - expression's text
+	 */
+	private boolean shouldLogMatch(Expression exp) {
+		String expString = exp.toString();
+		return ((selectedText.contains(expString) || expString.contains(selectedText)) && selectedTextBounds.overlaps(new Bounds(exp)));
+	}
+	
+	private boolean shouldLogMethodOrClass(Expression exp) {
+		return (selectedText.equals(currentMethodName) && selectedIsMethod) || 
+				(selectedText.equals(currentClassName) && selectedIsClass);
+	}
+	
+	/**
+	 * Add parts of an Expression to a List
+	 * @param vars - list to add parts to
+	 * @param exp - expression to get parts from
+	 */
+	private void addExpressionParts(ArrayList<String> vars, Expression exp) {
+		if(exp instanceof NameExpr){
+			vars.add(exp.toString());
+		}
+		else if(exp instanceof BinaryExpr){
+			BinaryExpr binaryExpr = (BinaryExpr)exp;
+			Expression left = binaryExpr.getLeft();
+			Expression right = binaryExpr.getRight();
+			addExpressionParts(vars, left);
+			addExpressionParts(vars, right);
+		}
+		else if(exp instanceof AssignExpr){
+			AssignExpr assignExpr = (AssignExpr)exp;
+			vars.add(assignExpr.getTarget().toString());
+			addExpressionParts(vars, assignExpr.getValue());
+		} 
+		else if(exp instanceof VariableDeclarationExpr) {
+			List<VariableDeclarator> varDecs = ((VariableDeclarationExpr)exp).getVars();
+			ListIterator<VariableDeclarator> iterator = varDecs.listIterator();
+			while(iterator.hasNext()){
+				VariableDeclarator dec = iterator.next();
+				vars.add(dec.getId().toString());
+				addExpressionParts(vars, dec.getInit());
+			}
+		}
+	}
 
-	public void printLog(ArrayList<String> vars, int endLineIndex){
-		endLineIndex += loggingStatementsPrinted - 1;
+	/**
+	 * Create a logging statement and insert it into the document
+	 * @param vars - variables to include in the logging statement
+	 * @param endLineIndex - the index of the line that the logging statement should follow
+	 */
+	public void printLog(ArrayList<String> vars, int endLineIndex, boolean continueFilter){
+		endLineIndex += loggingStatementsPrinted;
 		
 		try {
 			int lineOffset = doc.getLineOffset(endLineIndex); 
@@ -130,6 +229,9 @@ public class DoStuff implements IObjectActionDelegate {
 			int endLineLength = doc.getLineLength(endLineIndex);
 
 			String endLine = doc.get(lineOffset, endLineLength);
+			
+			if(continueFilter)
+				vars = stripVars(vars);
 			
 			String textToInsert = buildTextToInsert(vars, endLineLength, endLine);
 
@@ -144,6 +246,21 @@ public class DoStuff implements IObjectActionDelegate {
 		loggingStatementsPrinted++;
 	}
 
+	private ArrayList<String> stripVars(ArrayList<String> vars) {
+		ArrayList<String> stripped = new ArrayList<String>();
+		for(int z = 0; z < vars.size(); z++){
+			if(selectedText.contains(vars.get(z)) && !stripped.contains(vars.get(z)))
+				stripped.add(vars.get(z));
+		}
+		return stripped;
+	}
+
+	/**
+	 * Build a logging statement
+	 * @param vars - variables to include in the logging statement=
+	 * @param endLineLength - length of the line that the logging statement should follow
+	 * @param endLine - the text of the line that the logging statement should follow
+	 */
 	private String buildTextToInsert(ArrayList<String> vars, int endLineLength, String endLine) {
 		String textToInsert = "PyxisLog.e(Constants.PYXIS_LOG_TAG, ";
 		
@@ -170,7 +287,10 @@ public class DoStuff implements IObjectActionDelegate {
 		 */
 		@Override
 		public void visit(MethodDeclaration n, Object arg) {
-			attemptToLogStatements(n.getBody().getStmts(), n.getName());
+			currentMethodName = n.getName();
+			selectedIsMethod = n.getBeginLine() - 1 == selectedTextBounds.startRow && n.getEndLine() - 1 == selectedTextBounds.endRow;
+			attemptToLogStatements(n.getBody().getStmts());
+			super.visit(n, arg);
 		}
 		
 		/**
@@ -178,84 +298,92 @@ public class DoStuff implements IObjectActionDelegate {
 		 */
 		@Override
 		public void visit(ConstructorDeclaration n, Object arg) {
-			attemptToLogStatements(n.getBlock().getStmts(), n.getName());
+			currentMethodName = n.getName();
+			selectedIsMethod = n.getBeginLine() - 1 == selectedTextBounds.startRow && n.getEndLine() - 1 == selectedTextBounds.endRow;
+			attemptToLogStatements(n.getBlock().getStmts());
+			super.visit(n, arg);
 		}
 		
-		/**
-		 * Attempt to log all statements in a list
-		 * @param stmts - List of Statements that will attempt to be logged
-		 * @param methodName - name of method that the Statements are in
-		 */
-		private void attemptToLogStatements(List<Statement> stmts, String methodName){
-			Iterator<Statement> iterator = stmts.iterator();
-			while(iterator.hasNext()){
-				Statement stmt = iterator.next();
-				if(stmt instanceof ExpressionStmt){
-					Expression exp = ((ExpressionStmt)stmt).getExpression();
-					breakDownExpressionAndAttemptToLog(exp, methodName);
-				}
-			}
+		@Override
+		public void visit(ClassOrInterfaceDeclaration n, Object arg) {
+			currentClassName = n.getName();
+			selectedIsClass = n.getBeginLine() - 1 == selectedTextBounds.startRow && n.getEndLine() - 1 == selectedTextBounds.endRow;
+			super.visit(n, arg);
 		}
 		
-		/**
-		 * Attempt to log an Expression
-		 * @param exp - variable declaration that will attempt to be logged
-		 * @param methodName - name of method that the expression is in
-		 */
-		private void breakDownExpressionAndAttemptToLog(Expression exp, String methodName){
-			if(shouldLog(exp.toString(), methodName)){
-				ArrayList<String> vars = new ArrayList<String>();
-				addExpressionParts(vars, exp);
-				
-				printLog(vars, exp.getEndLine());
-			}
+		/*@Override
+		public void visit(VariableDeclarationExpr n, Object arg) {
+			if(!breakDownExpressionAndAttemptToLog(n))
+				super.visit(n, arg);
 		}
 		
-		/**
-		 * Should this Expression be logged?
-		 * @param exp - expression's text
-		 * @param methodName - name of method that the expression is in
-		 */
-		private boolean shouldLog(String exp, String methodName) {
-			return selectedText.contains(exp) || selectedText.contains(methodName);
+		@Override
+		public void visit(AssignExpr n, Object arg) {
+			if(!breakDownExpressionAndAttemptToLog(n))
+				super.visit(n, arg);
+		}
+		
+		@Override
+		public void visit(BinaryExpr n, Object arg) {
+			if(!breakDownExpressionAndAttemptToLog(n))
+				super.visit(n, arg);
+		}
+		
+		@Override
+		public void visit(NameExpr n, Object arg) {
+			if(!breakDownExpressionAndAttemptToLog(n))
+				super.visit(n, arg);
+		}*/
+	}
+	
+	class Bounds {
+		public int startRow;
+		public int endRow;
+		//public int startColumn;
+		//public int endColumn;
+		
+		public Bounds(int startRow, int endRow, int startColumn, int endColumn) {
+			this.startRow = startRow;
+			this.endRow = endRow;
+			//this.startColumn = startColumn;
+			//this.endColumn = endColumn;
 		}
 
+		public Bounds(ITextSelection iTextSelection) {
+			//try {
+				this.startRow = iTextSelection.getStartLine();
+				this.endRow = iTextSelection.getEndLine();
+				//this.startColumn = iTextSelection.getOffset() - doc.getLineOffset(startRow);
+				//this.endColumn = startColumn + iTextSelection.getLength();
+			//}
+			//catch (BadLocationException e) {
+				// TODO Auto-generated catch block
+			//	e.printStackTrace();
+			//}
+		}
+
+		public Bounds(Expression exp) {
+			this.startRow = exp.getBeginLine()-1;
+			this.endRow = exp.getEndLine()-1;
+			//this.startColumn = exp.getBeginColumn()-1;
+			//this.endColumn = exp.getEndColumn()-1;
+		}
 		
-		/**
-		 * Add parts of an Expression to a List
-		 * @param vars - list to add parts to
-		 * @param exp - expression to get parts from
-		 */
-		private void addExpressionParts(ArrayList<String> vars, Expression exp) {
-			if(exp instanceof NameExpr){
-				vars.add(exp.toString());
-			}
-			else if(exp instanceof BinaryExpr){
-				BinaryExpr binaryExpr = (BinaryExpr)exp;
-				Expression left = binaryExpr.getLeft();
-				Expression right = binaryExpr.getRight();
-				addExpressionParts(vars, left);
-				addExpressionParts(vars, right);
-			}
-			else if(exp instanceof AssignExpr){
-				AssignExpr assignExpr = (AssignExpr)exp;
-				vars.add(assignExpr.getTarget().toString());
-				addExpressionParts(vars, assignExpr.getValue());
-			} 
-			else if(exp instanceof VariableDeclarationExpr) {
-				List<VariableDeclarator> varDecs = ((VariableDeclarationExpr)exp).getVars();
-				ListIterator<VariableDeclarator> iterator = varDecs.listIterator();
-				while(iterator.hasNext()){
-					VariableDeclarator dec = iterator.next();
-					vars.add(dec.getId().toString());
-					addExpressionParts(vars, dec.getInit());
-				}
-			}
+		public boolean overlaps(Bounds bounds) {
+			/*return (startRow >= bounds.startRow && startRow <= bounds.endRow) ||
+					(endRow >= bounds.startRow && endRow <= bounds.endRow) ||
+					(startRow <= bounds.startRow && startRow >= bounds.endRow) ||
+					(endRow <= bounds.startRow && endRow >= bounds.endRow);*/
+			return (bounds.startRow >= startRow && bounds.startRow <= endRow) || (bounds.endRow >= startRow && bounds.endRow <= endRow) || (startRow >= bounds.startRow && startRow <= bounds.endRow) || (endRow >= bounds.startRow && endRow <= bounds.endRow);
 		}
 	}
-
+	
 	@Override
 	public void selectionChanged(IAction action, ISelection selection) {}
 
 }
+
+	
+
+
 
