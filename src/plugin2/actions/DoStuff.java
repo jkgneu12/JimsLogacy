@@ -1,5 +1,16 @@
 package plugin2.actions;
 
+import java.io.ByteArrayInputStream;
+
+import japa.parser.JavaParser;
+import japa.parser.ast.CompilationUnit;
+import japa.parser.ast.body.FieldDeclaration;
+import japa.parser.ast.body.MethodDeclaration;
+import japa.parser.ast.expr.ClassExpr;
+import japa.parser.ast.expr.FieldAccessExpr;
+import japa.parser.ast.stmt.ExpressionStmt;
+import japa.parser.ast.visitor.VoidVisitorAdapter;
+
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.IDocument;
@@ -79,6 +90,12 @@ public class DoStuff implements IObjectActionDelegate {
         ITextEditor editor = (ITextEditor) editorPart;
         IDocumentProvider dp = editor.getDocumentProvider();
         IDocument doc = dp.getDocument(editor.getEditorInput());
+        
+        CompilationUnit compUnit = JavaParser.parse(new ByteArrayInputStream(doc.get(0, doc.getLength()).getBytes()));
+        
+       	new MethodVisitor().visit(compUnit, null);
+        
+        
         int offset = doc.getLineOffset(endLineIndex); 
         
         int endLineLength = doc.getLineLength(endLineIndex);
@@ -98,6 +115,35 @@ public class DoStuff implements IObjectActionDelegate {
       }
     } catch (Exception e) {
       MessageDialog.openError(shell, TITLE, e.getMessage());
+    }
+  }
+  
+  private static class MethodVisitor extends VoidVisitorAdapter {
+
+      @Override
+      public void visit(MethodDeclaration n, Object arg) {
+          // here you can access the attributes of the method.
+          // this method will be called for all methods in this 
+          // CompilationUnit, including inner class methods
+          System.out.println(n.getName());
+      }
+      
+      @Override
+    public void visit(FieldAccessExpr n, Object arg) {
+    	// TODO Auto-generated method stub
+    	super.visit(n, arg);
+    }
+      
+    @Override
+    public void visit(FieldDeclaration n, Object arg) {
+    	// TODO Auto-generated method stub
+    	super.visit(n, arg);
+    }
+    
+    @Override
+    public void visit(ExpressionStmt n, Object arg) {
+    	// TODO Auto-generated method stub
+    	super.visit(n, arg);
     }
   }
 
