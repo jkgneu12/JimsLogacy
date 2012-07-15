@@ -11,11 +11,19 @@
             <menu
                 label="Jims Logacy"
                 path="additions"
+                icon="res/log.png"
                 id="Plugin.EditorMenu">
                 <separator
                     name="group">
                 </separator>
             </menu>
+            <action
+                label="Toggle Logs"
+                class="logacy.actions.Toggle"
+                menubarPath="Plugin.EditorMenu/group"
+                enablesFor="1"
+                id="Plugin.Toggle">
+            </action>
             <action
                 label="Error"
                 class="logacy.actions.Error"
@@ -59,6 +67,7 @@
 	        defaultHandler="logacy.actions.Error"
 	        id="Plugin.Error"
 	        name="Error">
+	         <commandParameter id="JimsLogacy.parameter1" name="DropDown Options" optional="true"></commandParameter>
 	    </command>
 	    <command
 	        defaultHandler="logacy.actions.Warning"
@@ -80,6 +89,11 @@
 	        id="Plugin.Verbose"
 	        name="Verbose">
 	    </command>
+	    <command
+	        defaultHandler="logacy.actions.Toggle"
+	        id="Plugin.Toggle"
+	        name="Toggle Logs">
+	    </command>
 	</extension>
 	
     <extension point="org.eclipse.ui.bindings">
@@ -87,29 +101,93 @@
 			commandId="Plugin.Error"
 			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
 			contextId="org.eclipse.ui.textEditorScope"/>
-	</extension>
-	<extension point="org.eclipse.ui.bindings">
 		<key sequence="Ctrl+Alt+2"
 			commandId="Plugin.Warn"
 			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
 			contextId="org.eclipse.ui.textEditorScope"/>
-	</extension>
-	<extension point="org.eclipse.ui.bindings">
 		<key sequence="Ctrl+Alt+3"
 			commandId="Plugin.Info"
 			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
 			contextId="org.eclipse.ui.textEditorScope"/>
-	</extension>
-	<extension point="org.eclipse.ui.bindings">
 		<key sequence="Ctrl+Alt+4"
 			commandId="Plugin.Debug"
 			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
 			contextId="org.eclipse.ui.textEditorScope"/>
-	</extension>
-	<extension point="org.eclipse.ui.bindings">
 		<key sequence="Ctrl+Alt+5"
 			commandId="Plugin.Verbose"
 			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
 			contextId="org.eclipse.ui.textEditorScope"/>
+		<key sequence="Ctrl+Alt+Space"
+			commandId="Plugin.Toggle"
+			schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+			contextId="org.eclipse.ui.textEditorScope"/>
 	</extension>
+	
+	<extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            locationURI="menu:org.eclipse.ui.main.menu?after=additions">
+         <menu
+               label="Logacy"
+               mnemonic="M"
+               id="Plugin.menu">
+            <command
+                  commandId="Plugin.Toggle"
+                  mnemonic="S"
+                  id="Plugin.menus.toggle">
+            </command>
+            <separator name="menu.sep" visible="true"/>
+            <command
+                  commandId="Plugin.Error"
+                  mnemonic="S"
+                  id="Plugin.menus.error">
+            </command>
+            <command
+                  commandId="Plugin.Warn"
+                  mnemonic="S"
+                  id="Plugin.menus.warn">
+            </command>
+            <command
+                  commandId="Plugin.Info"
+                  mnemonic="S"
+                  id="Plugin.menus.info">
+            </command>
+            <command
+                  commandId="Plugin.Debug"
+                  mnemonic="S"
+                  id="Plugin.menus.debug">
+            </command>
+            <command
+                  commandId="Plugin.Verbose"
+                  mnemonic="S"
+                  id="Plugin.menus.verbose">
+            </command>
+         </menu>
+      </menuContribution>
+      <menuContribution
+            locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
+         <toolbar
+               id="Plugin.toolbar">
+            <command
+                  commandId="Plugin.Toggle"
+                  icon="res/log.png"
+                  tooltip="Toggle Logs"
+                  id="Plugin.toolbars.toggle"
+                  style="pulldown">
+            </command>
+            
+         </toolbar>
+      </menuContribution>
+      <menuContribution locationURI="menu:Plugin.toolbars.toggle">
+	      <!-- Dropdown Menu Options -->
+	      <command commandId="Plugin.Toggle" label="Toggle Logs" style="push"></command>
+	      <separator name="toolbar.sep" visible="true"/>
+	      <command commandId="Plugin.Error" label="Error" style="push"></command>
+	      <command commandId="Plugin.Warn" label="Warn" style="push"></command>
+	      <command commandId="Plugin.Info" label="Info" style="push"></command>
+	      <command commandId="Plugin.Debug" label="Debug" style="push"></command>
+	      <command commandId="Plugin.Verbose" label="Verbose" style="push"></command>
+	   </menuContribution>
+   </extension>
+	
 </plugin>
