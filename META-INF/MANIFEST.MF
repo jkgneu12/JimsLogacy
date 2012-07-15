@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Jims Loggacy
 Bundle-SymbolicName: JimsLoggacy;singleton:=true
 Bundle-Version: 1.0
-Bundle-Activator: loggacy.Activator
+Bundle-Activator: logacy.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.core.resources,

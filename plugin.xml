@@ -9,7 +9,7 @@
             objectClass="org.eclipse.ui.IEditorInput"
             nameFilter="*.*">
             <menu
-                label="Jims Loggacy"
+                label="Jims Logacy"
                 path="additions"
                 id="Plugin.EditorMenu">
                 <separator
@@ -18,35 +18,35 @@
             </menu>
             <action
                 label="Error"
-                class="loggacy.actions.Error"
+                class="logacy.actions.Error"
                 menubarPath="Plugin.EditorMenu/group"
                 enablesFor="1"
                 id="Plugin.Error">
             </action>
             <action
                 label="Warn"
-                class="loggacy.actions.Warning"
+                class="logacy.actions.Warning"
                 menubarPath="Plugin.EditorMenu/group"
                 enablesFor="1"
                 id="Plugin.Warn">
             </action>
             <action
                 label="Info"
-                class="loggacy.actions.Inform"
+                class="logacy.actions.Inform"
                 menubarPath="Plugin.EditorMenu/group"
                 enablesFor="1"
                 id="Plugin.Info">
             </action>
             <action
                 label="Debug"
-                class="loggacy.actions.Debug"
+                class="logacy.actions.Debug"
                 menubarPath="Plugin.EditorMenu/group"
                 enablesFor="1"
                 id="Plugin.Debug">
             </action>
             <action
                 label="Verbose"
-                class="loggacy.actions.Verbose"
+                class="logacy.actions.Verbose"
                 menubarPath="Plugin.EditorMenu/group"
                 enablesFor="1"
                 id="Plugin.Verbose">
@@ -56,27 +56,27 @@
     
     <extension point="org.eclipse.ui.commands">
 	    <command
-	        defaultHandler="loggacy.actions.Error"
+	        defaultHandler="logacy.actions.Error"
 	        id="Plugin.Error"
 	        name="Error">
 	    </command>
 	    <command
-	        defaultHandler="loggacy.actions.Warning"
+	        defaultHandler="logacy.actions.Warning"
 	        id="Plugin.Warn"
 	        name="Warn">
 	    </command>
 	    <command
-	        defaultHandler="loggacy.actions.Inform"
+	        defaultHandler="logacy.actions.Inform"
 	        id="Plugin.Info"
 	        name="Info">
 	    </command>
 	    <command
-	        defaultHandler="loggacy.actions.Debug"
+	        defaultHandler="logacy.actions.Debug"
 	        id="Plugin.Debug"
 	        name="Debug">
 	    </command>
 	    <command
-	        defaultHandler="loggacy.actions.Verbose"
+	        defaultHandler="logacy.actions.Verbose"
 	        id="Plugin.Verbose"
 	        name="Verbose">
 	    </command>

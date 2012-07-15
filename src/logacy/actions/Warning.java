@@ -1,4 +1,4 @@
-package loggacy.actions;
+package logacy.actions;
 
 public class Warning extends Action {
 

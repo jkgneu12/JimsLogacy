@@ -1,4 +1,4 @@
-package loggacy;
+package logacy;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;

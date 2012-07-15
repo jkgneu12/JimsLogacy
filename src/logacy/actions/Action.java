@@ -1,4 +1,4 @@
-package loggacy.actions;
+package logacy.actions;
 
 import japa.parser.JavaParser;
 import japa.parser.ast.CompilationUnit;
@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.TreeSet;
 
-import loggacy.Activator;
+import logacy.Activator;
 
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
