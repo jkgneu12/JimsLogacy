@@ -29,6 +29,7 @@ import java.util.ListIterator;
 import java.util.TreeMap;
 
 import logacy.Activator;
+import logacy.preferences.PreferenceConstants;
 
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -77,6 +78,8 @@ public class Logger implements IObjectActionDelegate, IHandler {
 	private String logLevel;
 	
 	boolean didReplace;
+	private String LOG_CLASS;
+	private String LOG_TAG;
 	
 	
 
@@ -103,6 +106,8 @@ public class Logger implements IObjectActionDelegate, IHandler {
 	 */
 	@Override
 	public void run(IAction action) {
+		this.LOG_CLASS = Activator.getDefault().getPreferenceStore().getString(PreferenceConstants.CLASS);
+		this.LOG_TAG = Activator.getDefault().getPreferenceStore().getString(PreferenceConstants.TAG);
 		try {
 			loggingStatementsPrinted = new TreeMap<Integer, Integer>();
 			
@@ -321,7 +326,7 @@ public class Logger implements IObjectActionDelegate, IHandler {
 	 * @param endLine - the text of the line that the logging statement should follow
 	 */
 	private String buildTextToInsert(ArrayList<String> vars, int endLineLength, String endLine, int increaseIndent) {
-		String textToInsert = "PyxisLog." + logLevel + "(Constants.PYXIS_LOG_TAG, ";
+		String textToInsert = LOG_CLASS + "." + logLevel + "(" + LOG_TAG + ", ";
 		
 		for(int z = 0; z < vars.size(); z++){
 			String var = vars.get(z);
