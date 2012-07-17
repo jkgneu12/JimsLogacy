@@ -11,7 +11,7 @@
             <menu
                 label="Jims Logacy"
                 path="additions"
-                icon="res/log.png"
+                icon="icons/log.png"
                 id="Plugin.EditorMenu">
                 <separator
                     name="group">
@@ -67,7 +67,6 @@
 	        defaultHandler="logacy.actions.Error"
 	        id="Plugin.Error"
 	        name="Error">
-	         <commandParameter id="JimsLogacy.parameter1" name="DropDown Options" optional="true"></commandParameter>
 	    </command>
 	    <command
 	        defaultHandler="logacy.actions.Warning"
@@ -170,7 +169,7 @@
                id="Plugin.toolbar">
             <command
                   commandId="Plugin.Toggle"
-                  icon="res/log.png"
+                  icon="icons/log.png"
                   tooltip="Toggle Logs"
                   id="Plugin.toolbars.toggle"
                   style="pulldown">
