@@ -39,6 +39,7 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextSelection;
+import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.ui.IActionDelegate;
@@ -50,6 +51,7 @@ import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
+import org.eclipse.ui.texteditor.ITextEditorExtension3.InsertMode;
 
 
 /**
@@ -126,8 +128,12 @@ public class Logger implements IObjectActionDelegate, IHandler {
 				CompilationUnit compUnit = JavaParser.parse(new StringBufferInputStream(doc.get(0, doc.getLength())), "UTF-8");
 				new MethodVisitor().visit(compUnit, null);
 				
-				if(didReplace)
+				if(didReplace){
+					ISelectionProvider provider =((AbstractTextEditor) editorPart).getSelectionProvider();
+					ISelection selection = provider.getSelection();
 					doc.replace(0, doc.getLength(), docString);
+					provider.setSelection(selection);
+				}
 				else
 					console.println("Could not find any loggable variables in selection");
 

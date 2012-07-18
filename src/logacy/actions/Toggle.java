@@ -11,6 +11,7 @@ import org.eclipse.jface.text.FindReplaceDocumentAdapter;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IObjectActionDelegate;
 import org.eclipse.ui.IWorkbenchPart;
@@ -75,8 +76,13 @@ public class Toggle extends AbstractHandler implements IObjectActionDelegate {
 					
 					match = find.find(logEndIndex, "/*\\sPyxisLog.", true, true, false, true);
 				}
-				if(didReplace)
+				
+				if(didReplace){
+					ISelectionProvider provider =((AbstractTextEditor) editorPart).getSelectionProvider();
+					ISelection selection = provider.getSelection();
 					doc.replace(0, doc.getLength(), docString);
+					provider.setSelection(selection);
+				}
 				else
 					console.println("No log statements found");
 			} catch (BadLocationException e) {
