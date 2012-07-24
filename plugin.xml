@@ -93,6 +93,11 @@
 	        id="Plugin.Toggle"
 	        name="Toggle Logs">
 	    </command>
+	    <command
+	        defaultHandler="logacy.actions.ViewServer"
+	        id="Plugin.ViewServer"
+	        name="ViewServer">
+	    </command>
 	</extension>
 	
     <extension point="org.eclipse.ui.bindings">
@@ -161,6 +166,11 @@
                   mnemonic="S"
                   id="Plugin.menus.verbose">
             </command>
+            <command
+                  commandId="Plugin.ViewServer"
+                  mnemonic="S"
+                  id="Plugin.menus.viewserver">
+            </command>
          </menu>
       </menuContribution>
       <menuContribution
@@ -186,6 +196,8 @@
 	      <command commandId="Plugin.Info" label="Info" style="push"></command>
 	      <command commandId="Plugin.Debug" label="Debug" style="push"></command>
 	      <command commandId="Plugin.Verbose" label="Verbose" style="push"></command>
+	      <separator name="toolbar.sep2" visible="true"/>
+	      <command commandId="Plugin.ViewServer" label="View Server" style="push"></command>
 	   </menuContribution>
    </extension>
  <extension
